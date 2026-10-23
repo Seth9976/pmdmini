@@ -1,0 +1,43 @@
+name: build-windows  
+  
+on:  
+  workflow_dispatch:  
+  push:  
+    branches: [ PMDWinS051 ]  
+  
+jobs:  
+  build-windows:  
+    runs-on: windows-latest  
+    steps:  
+      - name: checkout-code  
+        uses: actions/checkout@v4  
+  
+      - name: clone-vcpkg  
+        run: git clone https://github.com/microsoft/vcpkg.git C:\vcpkg  
+  
+      - name: bootstrap-vcpkg  
+        run: C:\vcpkg\bootstrap-vcpkg.bat  
+  
+      - name: install-sdl2  
+        run: C:\vcpkg\vcpkg.exe install sdl2:x64-windows  
+  
+      - name: configure-project  
+        run: cmake -G "Visual Studio 17 2022" -A x64 -T host=x64 -D CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -D CMAKE_BUILD_TYPE=Release -S . -B build  
+  
+      - name: build-pmdplay  
+        run: cmake --build build --config Release --target pmdplay  
+  
+      - name: create-dist-dir  
+        run: New-Item -ItemType Directory -Force -Path dist  
+  
+      - name: copy-executable  
+        run: Copy-Item build\Release\pmdplay.exe dist\pmdplay.exe  
+  
+      - name: copy-sdl2-dll  
+        run: Copy-Item C:\vcpkg\installed\x64-windows\bin\SDL2.dll dist\SDL2.dll  
+  
+      - name: upload-artifact  
+        uses: actions/upload-artifact@v4  
+        with:  
+          name: pmdplay-win10-x64  
+          path: dist
