@@ -7,19 +7,16 @@ on:
   
 jobs:  
   build-windows:  
-    runs-on: windows-latest  
+    runs-on: windows-2022  
     steps:  
       - name: checkout-code  
-        uses: actions/checkout@v4    
-  
-      - name: bootstrap-vcpkg  
-        run: C:\vcpkg\bootstrap-vcpkg.bat  
+        uses: actions/checkout@v4  
   
       - name: install-sdl2  
-        run: C:\vcpkg\vcpkg.exe install sdl2:x64-windows  
+        run: vcpkg install sdl2:x64-windows  
   
       - name: configure-project  
-        run: cmake -G "Visual Studio 17 2022" -A x64 -T host=x64 -D CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -D CMAKE_BUILD_TYPE=Release -S . -B build  
+        run: cmake -G "Visual Studio 17 2022" -A x64 -T host=x64 -D CMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -D CMAKE_BUILD_TYPE=Release -S . -B build  
   
       - name: build-pmdplay  
         run: cmake --build build --config Release --target pmdplay  
@@ -31,7 +28,7 @@ jobs:
         run: Copy-Item build\Release\pmdplay.exe dist\pmdplay.exe  
   
       - name: copy-sdl2-dll  
-        run: Copy-Item C:\vcpkg\installed\x64-windows\bin\SDL2.dll dist\SDL2.dll  
+        run: Copy-Item "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin\SDL2.dll" dist\SDL2.dll  
   
       - name: upload-artifact  
         uses: actions/upload-artifact@v4  
